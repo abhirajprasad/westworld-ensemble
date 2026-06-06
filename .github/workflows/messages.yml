@@ -1,0 +1,84 @@
+name: Cron scheduler
+
+# Fires every 5 minutes. Determines which skill matches the current minute
+# and dispatches aeon.yml for it. Also dispatches chain-runner.yml for the
+# westworld-loop chain.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  schedule:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install scheduler deps
+        run: pip install PyYAML croniter
+
+      - name: Determine which skill or chain matches this minute
+        id: pick
+        run: |
+          python3 <<'EOF'
+          import yaml, os
+          from datetime import datetime, timezone
+          from croniter import croniter
+
+          now = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+          config = yaml.safe_load(open('aeon.yml'))
+
+          # Chains take priority over standalone skills if both match
+          for cname, ccfg in (config.get('chains') or {}).items():
+              cron = ccfg.get('schedule')
+              if not cron:
+                  continue
+              try:
+                  itr = croniter(cron, now)
+                  prev = itr.get_prev(datetime)
+                  if 0 <= (now - prev).total_seconds() < 300:
+                      with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                          f.write(f"chain={cname}\nskill=\n")
+                      print(f"Dispatching chain: {cname}")
+                      exit(0)
+              except Exception as e:
+                  print(f"skip chain {cname}: {e}")
+
+          for sname, scfg in (config.get('skills') or {}).items():
+              if not scfg.get('enabled'):
+                  continue
+              cron = scfg.get('schedule')
+              if not cron or cron in ('workflow_dispatch', 'chain-only'):
+                  continue
+              try:
+                  itr = croniter(cron, now)
+                  prev = itr.get_prev(datetime)
+                  if 0 <= (now - prev).total_seconds() < 300:
+                      with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                          f.write(f"skill={sname}\nchain=\n")
+                      print(f"Dispatching skill: {sname}")
+                      exit(0)
+              except Exception as e:
+                  print(f"skip skill {sname}: {e}")
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write("skill=\nchain=\n")
+          print("No match this tick")
+          EOF
+
+      - name: Dispatch skill
+        if: steps.pick.outputs.skill != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run aeon.yml -f skill="${{ steps.pick.outputs.skill }}" -f var=""
+
+      - name: Dispatch chain
+        if: steps.pick.outputs.chain != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run chain-runner.yml -f chain="${{ steps.pick.outputs.chain }}"

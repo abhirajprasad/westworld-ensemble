@@ -1,0 +1,59 @@
+name: Chat message
+description: A paid chat message (created automatically by the payment verifier backend; do not use manually)
+title: "[chat] "
+labels: ["type:chat-message", "chat:pending"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This template is intended to be filled programmatically by the payment verifier backend.**
+
+        If you're a human trying to chat with this host without paying, please use the [official chat frontend](https://westworld.chat) instead. Issues opened manually (without verified payment) will be closed with no response.
+
+  - type: input
+    id: user_wallet
+    attributes:
+      label: User wallet (0x... or solana address)
+      description: The wallet that paid for this message.
+    validations:
+      required: true
+
+  - type: input
+    id: payment_tx_hash
+    attributes:
+      label: Payment transaction hash
+      description: On-chain hash of the payForMessage call.
+    validations:
+      required: true
+
+  - type: input
+    id: amount_paid
+    attributes:
+      label: Amount paid
+      description: e.g., "10 BASEBLDR"
+    validations:
+      required: true
+
+  - type: input
+    id: verified_at
+    attributes:
+      label: Verified at (ISO 8601)
+      description: When the backend verified the payment.
+    validations:
+      required: true
+
+  - type: input
+    id: message_hash
+    attributes:
+      label: Message hash
+      description: keccak256(message + timestamp + wallet) — for replay protection.
+    validations:
+      required: true
+
+  - type: textarea
+    id: message_body
+    attributes:
+      label: Message
+      description: The user's message text.
+    validations:
+      required: true

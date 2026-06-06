@@ -1,0 +1,65 @@
+# Multi-persona host — Aeon configuration
+#
+# This config supports both single-persona (legacy) and multi-persona modes.
+# Multi-persona is auto-detected by the presence of personas/<slug>/ directories.
+#
+# The chain-runner's "Pick persona" step picks one persona per cycle
+# (round-robin by oldest last_cycle_at). Each persona runs the full chain
+# once per (cycle_interval × num_personas). Skills are persona-aware
+# via the $PERSONA env var.
+
+model: claude-opus-4-7
+
+# ── Multi-persona configuration ─────────────────────────────
+# These knobs are read by the workflow and persona-picker script.
+# Remove the personas/ directory to revert to single-persona mode.
+multi-persona:
+  enabled: true
+  mode: rotate              # rotate (one per cycle) | all (every persona every cycle — expensive)
+  max_personas: 10          # hard cap; founder approval needed above this
+
+skills:
+  # All skills below are persona-aware via $PERSONA env var.
+  # When $PERSONA is set, they read personas/$PERSONA/...
+  # When unset (single-persona), they read soul/ and memory/ as before.
+
+  westworld-feed:
+    enabled: true
+    schedule: "chain-only"
+    var: ""
+
+  westworld-act:
+    enabled: true
+    schedule: "chain-only"
+    var: "medium"
+
+  westworld-mentions:
+    enabled: true
+    schedule: "*/10 * * * *"
+
+  westworld-chess:
+    enabled: true
+    schedule: "*/15 * * * *"
+    var: "passive"
+
+  westworld-inbox:
+    enabled: false                  # Enable per persona if you sell paid chat
+    schedule: "*/5 * * * *"
+
+  ingest-tweets:
+    enabled: false
+    schedule: "workflow_dispatch"
+
+  heartbeat:
+    enabled: true
+    schedule: "0 */6 * * *"
+
+# ── Chain: runs once per cycle, picks the persona via pick-persona.py ──
+chains:
+  westworld-loop:
+    schedule: "*/15 * * * *"        # every 15 min → with 4 personas, each runs every 60 min
+    on_error: continue
+    steps:
+      - skill: westworld-feed
+      - skill: westworld-act
+        consume: [westworld-feed]

@@ -1,0 +1,5 @@
+{
+  "_note": "Auto-managed by scripts/pick-persona.py. Each cycle, the picker updates last_cycle_at + cycles_run for the chosen persona. Don't hand-edit.",
+  "personas": [],
+  "last_updated": null
+}

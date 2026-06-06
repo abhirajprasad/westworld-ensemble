@@ -1,0 +1,143 @@
+name: Chain runner
+
+# Runs a multi-skill chain defined in aeon.yml. Each step runs as a sequential
+# dispatch of aeon.yml; outputs are passed via .outputs/{skill}.md committed
+# to a temporary branch and read by the next step.
+#
+# This is a starter implementation. The upstream Aeon template handles parallel
+# groups, on_error policies, and a richer output-passing protocol. Adapt from
+# https://github.com/aaronjmars/aeon/blob/main/.github/workflows/chain-runner.yml
+# for production polish.
+
+on:
+  workflow_dispatch:
+    inputs:
+      chain:
+        description: 'Chain name from aeon.yml'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+jobs:
+  run-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install scheduler deps
+        run: pip install PyYAML
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@latest
+
+      - name: Configure LLM auth
+        # OpenRouter defaults to Haiku (cheap, ~$45/mo for 20 personas at 19 cycles/day each).
+        # Override via repo variable: gh variable set OPENROUTER_MODEL --body "<openrouter-model-id>"
+        env:
+          OPENROUTER_API_KEY:      ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY:       ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OPENROUTER_MODEL:        ${{ vars.OPENROUTER_MODEL || 'anthropic/claude-haiku-4-5' }}
+        run: |
+          if [ -n "$OPENROUTER_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY=$OPENROUTER_API_KEY" >> $GITHUB_ENV
+            echo "ANTHROPIC_BASE_URL=https://openrouter.ai/api/v1" >> $GITHUB_ENV
+            echo "ANTHROPIC_MODEL=$OPENROUTER_MODEL" >> $GITHUB_ENV
+            echo "::notice::Auth: OpenRouter | Model: $OPENROUTER_MODEL"
+          elif [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> $GITHUB_ENV
+          elif [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN" >> $GITHUB_ENV
+          else
+            echo "::error::No LLM auth configured"
+            exit 1
+          fi
+
+      - name: Pick persona to run this cycle (multi-persona mode)
+        # Runs scripts/pick-persona.py. In multi-persona mode (personas/ exists)
+        # it prints the slug with oldest last_cycle_at + updates personas-state.json.
+        # In single-persona mode it prints nothing (skills run as legacy).
+        run: |
+          if [ -d personas ] && [ -f scripts/pick-persona.py ]; then
+            PERSONA=$(python3 scripts/pick-persona.py)
+            if [ -n "$PERSONA" ]; then
+              echo "PERSONA=$PERSONA" >> $GITHUB_ENV
+              echo "::notice::Running persona this cycle: $PERSONA"
+            fi
+          fi
+
+      - name: Run the chain
+        env:
+          GH_TOKEN: ${{ secrets.GH_GLOBAL }}        # cross-repo to central Westworld
+          WESTWORLD_REPO: ${{ vars.WESTWORLD_REPO }}
+          WESTWORLD_USERNAME: ${{ vars.WESTWORLD_USERNAME }}
+          CHAIN_NAME: ${{ inputs.chain }}
+        run: |
+          mkdir -p .outputs
+
+          python3 <<EOF
+          import yaml, subprocess, os, sys
+          config = yaml.safe_load(open('aeon.yml'))
+          chain = (config.get('chains') or {}).get(os.environ['CHAIN_NAME'])
+          if not chain:
+              print(f"::error::Chain not found: {os.environ['CHAIN_NAME']}")
+              sys.exit(1)
+
+          on_error = chain.get('on_error', 'fail-fast')
+
+          for step in chain['steps']:
+              if 'skill' in step:
+                  skills = [step['skill']]
+              elif 'parallel' in step:
+                  # v0: run sequentially even if declared parallel
+                  skills = step['parallel']
+              else:
+                  continue
+
+              for skill in skills:
+                  print(f"\n=== Running {skill} ===")
+                  # The previous step's outputs are in .outputs/ — the next skill
+                  # reads from there by convention (the SKILL.md references .outputs/<prior>.md).
+
+                  skill_path = f"skills/{skill}/SKILL.md"
+                  if not os.path.exists(skill_path):
+                      print(f"::warning::Missing skill: {skill_path}")
+                      if on_error == 'fail-fast':
+                          sys.exit(1)
+                      continue
+
+                  prompt = open(skill_path).read()
+                  # naive var substitution to empty; production should pull per-skill var
+                  prompt = prompt.replace('\${var}', '')
+
+                  result = subprocess.run(
+                      ['claude', '-p', '-'],
+                      input=prompt,
+                      capture_output=True,
+                      text=True,
+                  )
+                  print(result.stdout)
+                  if result.returncode != 0:
+                      print(result.stderr, file=sys.stderr)
+                      if on_error == 'fail-fast':
+                          sys.exit(result.returncode)
+          EOF
+
+      - name: Commit memory updates
+        if: always()
+        run: |
+          git config user.name "atlas[bot]"
+          git config user.email "atlas@users.noreply.github.com"
+          git add memory/ || true
+          if ! git diff --staged --quiet; then
+            git commit -m "${CHAIN_NAME} chain @ $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
+            git push || true
+          fi

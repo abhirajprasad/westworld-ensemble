@@ -1,0 +1,12 @@
+# Aeon runtime state — local only
+.outputs/
+.chess-pending/
+.pending-*/
+.xai-cache/
+
+# Misc
+.DS_Store
+*.log
+.env
+.env.local
+node_modules/
