@@ -81,19 +81,6 @@ jobs:
           # gh CLI talks to the central repo via GH_GLOBAL, not GH_TOKEN
           export GH_TOKEN="$GH_GLOBAL"
 
-          echo "::group::DEBUG: direct OpenRouter probe"
-          echo "BASE_URL=$ANTHROPIC_BASE_URL  MODEL=$ANTHROPIC_MODEL"
-          echo "--- Anthropic /messages endpoint ---"
-          curl -sS -w "\nHTTP %{http_code}\n" -X POST "https://openrouter.ai/api/v1/messages" \
-            -H "x-api-key: $ANTHROPIC_API_KEY" \
-            -H "anthropic-version: 2023-06-01" \
-            -H "content-type: application/json" \
-            -d "{\"model\":\"$ANTHROPIC_MODEL\",\"max_tokens\":16,\"messages\":[{\"role\":\"user\",\"content\":\"say ok\"}]}" | head -c 800
-          echo ""
-          echo "--- claude --version ---"
-          claude --version || true
-          echo "::endgroup::"
-
           sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md" | claude -p -
 
       - name: Commit any memory updates
