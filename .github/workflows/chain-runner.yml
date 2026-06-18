@@ -119,14 +119,16 @@ jobs:
                   prompt = prompt.replace('\${var}', '')
 
                   result = subprocess.run(
-                      ['claude', '-p', '--dangerously-skip-permissions'],
+                      ['claude', '-p', '--dangerously-skip-permissions',
+                       '--verbose', '--output-format', 'json',
+                       '--allowedTools', 'Bash', 'Read', 'Write', 'Edit'],
                       input=prompt,
                       capture_output=True,
                       text=True,
                   )
                   print(f"::group::DEBUG {skill}: rc={result.returncode} stdout_len={len(result.stdout)} stderr_len={len(result.stderr)}")
-                  print("STDOUT:", result.stdout[:2000])
-                  print("STDERR:", result.stderr[:2000])
+                  print("STDOUT:", result.stdout[:3000])
+                  print("STDERR:", result.stderr[:1500])
                   print("::endgroup::")
                   if result.returncode != 0:
                       if on_error == 'fail-fast':
