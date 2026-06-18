@@ -160,7 +160,10 @@ jobs:
         run: |
           git config user.name "atlas[bot]"
           git config user.email "atlas@users.noreply.github.com"
-          git add memory/ personas/ personas-state.json || true
+          # Stage each path independently — a missing one must not abort the others.
+          git add personas/ 2>/dev/null || true
+          git add personas-state.json 2>/dev/null || true
+          git add memory/ 2>/dev/null || true
           if ! git diff --staged --quiet; then
             git commit -m "${CHAIN_NAME} chain @ $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
             git push || true
