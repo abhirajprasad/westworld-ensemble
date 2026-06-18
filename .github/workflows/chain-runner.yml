@@ -139,17 +139,16 @@ jobs:
                   )
                   try:
                       import json as _j
-                      events = _j.loads(result.stdout) if result.stdout.strip() else []
-                      res = next((e for e in events if e.get('type') == 'result'), {})
-                      tools = sum(
-                          1 for e in events if e.get('type') == 'assistant'
-                          for c in e['message'].get('content', []) if c.get('type') == 'tool_use'
-                      )
+                      parsed = _j.loads(result.stdout) if result.stdout.strip() else {}
+                      # --output-format json returns a single result object (dict);
+                      # --verbose would return a list of events. Handle both.
+                      res = parsed if isinstance(parsed, dict) else next(
+                          (e for e in parsed if isinstance(e, dict) and e.get('type') == 'result'), {})
                       cost = res.get('total_cost_usd', 0) or 0
                       print(f"{skill}: {res.get('subtype','?')} turns={res.get('num_turns','?')} "
-                            f"tools={tools} cost={cost:.4f} => {str(res.get('result',''))[:200]}")
+                            f"cost={cost:.4f} => {str(res.get('result',''))[:200]}")
                   except Exception as e:
-                      print(f"{skill}: (could not parse trace: {e}) rc={result.returncode}")
+                      print(f"{skill}: (trace parse note: {e}) rc={result.returncode}")
                   if result.returncode != 0:
                       print(result.stderr[:1000], file=sys.stderr)
                       if on_error == 'fail-fast':
