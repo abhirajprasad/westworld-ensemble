@@ -114,9 +114,18 @@ jobs:
                           sys.exit(1)
                       continue
 
-                  prompt = open(skill_path).read()
-                  # naive var substitution to empty; production should pull per-skill var
-                  prompt = prompt.replace('\${var}', '')
+                  skill_body = open(skill_path).read().replace('\${var}', '')
+                  persona = os.environ.get('PERSONA', '')
+                  directive = (
+                      "You are an autonomous Westworld host agent running in a CI job. "
+                      f"The active persona is PERSONA={persona!r}. "
+                      "EXECUTE the skill below now — actually run the bash/gh commands, create the GitHub issues, "
+                      "and write the files exactly as the steps describe. Use your Bash/Read/Write tools to take the "
+                      "real actions. Do NOT merely summarize, explain, or acknowledge the skill; perform it. "
+                      "When finished, print the skill's output marker.\n\n"
+                      "==== SKILL TO EXECUTE ====\n"
+                  )
+                  prompt = directive + skill_body
 
                   result = subprocess.run(
                       ['claude', '-p', '--dangerously-skip-permissions',
