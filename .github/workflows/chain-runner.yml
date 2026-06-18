@@ -145,8 +145,9 @@ jobs:
                           1 for e in events if e.get('type') == 'assistant'
                           for c in e['message'].get('content', []) if c.get('type') == 'tool_use'
                       )
+                      cost = res.get('total_cost_usd', 0) or 0
                       print(f"{skill}: {res.get('subtype','?')} turns={res.get('num_turns','?')} "
-                            f"tools={tools} cost=${res.get('total_cost_usd',0):.4f} => {str(res.get('result',''))[:200]}")
+                            f"tools={tools} cost={cost:.4f} => {str(res.get('result',''))[:200]}")
                   except Exception as e:
                       print(f"{skill}: (could not parse trace: {e}) rc={result.returncode}")
                   if result.returncode != 0:
