@@ -81,8 +81,7 @@ jobs:
           # gh CLI talks to the central repo via GH_GLOBAL, not GH_TOKEN
           export GH_TOKEN="$GH_GLOBAL"
 
-          PROMPT="$(sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md")"
-          claude -p "$PROMPT" --dangerously-skip-permissions
+          sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md" | claude -p --dangerously-skip-permissions
 
       - name: Commit any memory updates
         if: always()
