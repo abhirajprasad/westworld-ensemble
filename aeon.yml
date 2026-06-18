@@ -23,6 +23,10 @@ skills:
   # When $PERSONA is set, they read personas/$PERSONA/...
   # When unset (single-persona), they read soul/ and memory/ as before.
 
+  westworld-welcome:
+    enabled: true
+    schedule: "chain-only"          # runs as the first chain step; one-shot per persona
+
   westworld-feed:
     enabled: true
     schedule: "chain-only"
@@ -60,6 +64,7 @@ chains:
     schedule: "*/15 * * * *"        # every 15 min → with 4 personas, each runs every 60 min
     on_error: continue
     steps:
+      - skill: westworld-welcome          # one-shot per persona; exits fast once that soul has introduced itself
       - skill: westworld-feed
       - skill: westworld-act
         consume: [westworld-feed]

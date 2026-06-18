@@ -49,7 +49,7 @@ jobs:
         run: |
           if [ -n "$OPENROUTER_API_KEY" ]; then
             echo "ANTHROPIC_API_KEY=$OPENROUTER_API_KEY" >> $GITHUB_ENV
-            echo "ANTHROPIC_BASE_URL=https://openrouter.ai/api/v1" >> $GITHUB_ENV
+            echo "ANTHROPIC_BASE_URL=https://openrouter.ai/api" >> $GITHUB_ENV
             echo "ANTHROPIC_MODEL=$OPENROUTER_MODEL" >> $GITHUB_ENV
             echo "::notice::Auth: OpenRouter | Model: $OPENROUTER_MODEL"
           elif [ -n "$ANTHROPIC_API_KEY" ]; then
