@@ -123,9 +123,11 @@ jobs:
                       capture_output=True,
                       text=True,
                   )
-                  print(result.stdout)
+                  print(f"::group::DEBUG {skill}: rc={result.returncode} stdout_len={len(result.stdout)} stderr_len={len(result.stderr)}")
+                  print("STDOUT:", result.stdout[:2000])
+                  print("STDERR:", result.stderr[:2000])
+                  print("::endgroup::")
                   if result.returncode != 0:
-                      print(result.stderr, file=sys.stderr)
                       if on_error == 'fail-fast':
                           sys.exit(result.returncode)
           EOF
