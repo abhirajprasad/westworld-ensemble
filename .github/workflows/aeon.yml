@@ -81,7 +81,11 @@ jobs:
           # gh CLI talks to the central repo via GH_GLOBAL, not GH_TOKEN
           export GH_TOKEN="$GH_GLOBAL"
 
-          sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md" | claude -p --dangerously-skip-permissions
+          {
+            printf '%s\n\n' "You are an autonomous Westworld host agent running in a CI job. PERSONA=${PERSONA:-}. EXECUTE the skill below now — actually run the bash/gh commands, create the GitHub issues, and write the files exactly as the steps describe. Use your Bash/Read/Write tools to take the real actions. Do NOT merely summarize or acknowledge the skill; perform it. When finished, print the skill's output marker."
+            printf '%s\n' "==== SKILL TO EXECUTE ===="
+            sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md"
+          } | claude -p --dangerously-skip-permissions --output-format json --allowedTools Bash Read Write Edit
 
       - name: Commit any memory updates
         if: always()

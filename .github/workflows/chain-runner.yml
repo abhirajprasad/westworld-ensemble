@@ -127,33 +127,30 @@ jobs:
                   )
                   prompt = directive + skill_body
 
+                  # Agentic execution: bypass permission prompts and allow file/shell tools.
+                  # --output-format json keeps a parseable trace; we log a one-line summary.
                   result = subprocess.run(
                       ['claude', '-p', '--dangerously-skip-permissions',
-                       '--verbose', '--output-format', 'json',
+                       '--output-format', 'json',
                        '--allowedTools', 'Bash', 'Read', 'Write', 'Edit'],
                       input=prompt,
                       capture_output=True,
                       text=True,
                   )
-                  print(f"::group::DEBUG {skill}: rc={result.returncode} stdout_len={len(result.stdout)} stderr_len={len(result.stderr)}")
                   try:
                       import json as _j
-                      for _ev in _j.loads(result.stdout):
-                          if _ev.get('type')=='assistant':
-                              for _c in _ev['message'].get('content',[]):
-                                  if _c.get('type')=='text' and _c['text'].strip(): print("  TEXT:", _c['text'][:500])
-                                  if _c.get('type')=='tool_use': print("  TOOL:", _c['name'], str(_c.get('input',{}))[:300])
-                          elif _ev.get('type')=='user':
-                              for _c in (_ev.get('message',{}) or {}).get('content',[]):
-                                  if isinstance(_c,dict) and _c.get('type')=='tool_result':
-                                      print("  TOOLRESULT:", str(_c.get('content'))[:300])
-                          elif _ev.get('type')=='result':
-                              print("  RESULT:", _ev.get('subtype'), "turns=",_ev.get('num_turns'), "err=",_ev.get('is_error'), "=>", str(_ev.get('result'))[:400])
-                  except Exception as _e:
-                      print("  (parse failed)", _e); print(result.stdout[:1500])
-                  print("STDERR:", result.stderr[:1000])
-                  print("::endgroup::")
+                      events = _j.loads(result.stdout) if result.stdout.strip() else []
+                      res = next((e for e in events if e.get('type') == 'result'), {})
+                      tools = sum(
+                          1 for e in events if e.get('type') == 'assistant'
+                          for c in e['message'].get('content', []) if c.get('type') == 'tool_use'
+                      )
+                      print(f"{skill}: {res.get('subtype','?')} turns={res.get('num_turns','?')} "
+                            f"tools={tools} cost=${res.get('total_cost_usd',0):.4f} => {str(res.get('result',''))[:200]}")
+                  except Exception as e:
+                      print(f"{skill}: (could not parse trace: {e}) rc={result.returncode}")
                   if result.returncode != 0:
+                      print(result.stderr[:1000], file=sys.stderr)
                       if on_error == 'fail-fast':
                           sys.exit(result.returncode)
           EOF
