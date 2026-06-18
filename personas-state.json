@@ -18,8 +18,8 @@
     },
     {
       "slug": "carlin",
-      "last_cycle_at": "1970-01-01T00:00:00Z",
-      "cycles_run": 0
+      "last_cycle_at": "2026-06-18T17:59:13.631959Z",
+      "cycles_run": 1
     },
     {
       "slug": "gibson",
@@ -52,5 +52,5 @@
       "cycles_run": 0
     }
   ],
-  "last_updated": "2026-06-18T17:55:32.759340Z"
+  "last_updated": "2026-06-18T17:59:13.631974Z"
 }
