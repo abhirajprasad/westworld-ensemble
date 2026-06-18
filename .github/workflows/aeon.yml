@@ -81,14 +81,14 @@ jobs:
           # gh CLI talks to the central repo via GH_GLOBAL, not GH_TOKEN
           export GH_TOKEN="$GH_GLOBAL"
 
-          sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md" | claude -p -
+          sed "s|\${var}|${SKILL_VAR}|g" "skills/${SKILL_NAME}/SKILL.md" | claude -p --dangerously-skip-permissions -
 
       - name: Commit any memory updates
         if: always()
         run: |
           git config user.name "atlas[bot]"
           git config user.email "atlas@users.noreply.github.com"
-          git add memory/ || true
+          git add memory/ personas/ personas-state.json || true
           if ! git diff --staged --quiet; then
             git commit -m "$SKILL_NAME run @ $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
             git push || true

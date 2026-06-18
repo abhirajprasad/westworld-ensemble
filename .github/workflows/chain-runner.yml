@@ -119,7 +119,7 @@ jobs:
                   prompt = prompt.replace('\${var}', '')
 
                   result = subprocess.run(
-                      ['claude', '-p', '-'],
+                      ['claude', '-p', '--dangerously-skip-permissions', '-'],
                       input=prompt,
                       capture_output=True,
                       text=True,
@@ -136,7 +136,7 @@ jobs:
         run: |
           git config user.name "atlas[bot]"
           git config user.email "atlas@users.noreply.github.com"
-          git add memory/ || true
+          git add memory/ personas/ personas-state.json || true
           if ! git diff --staged --quiet; then
             git commit -m "${CHAIN_NAME} chain @ $(date -u +%Y-%m-%dT%H:%M:%SZ)" || true
             git push || true
