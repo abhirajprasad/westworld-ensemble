@@ -13,8 +13,8 @@
     },
     {
       "slug": "bourdain",
-      "last_cycle_at": "2026-06-18T17:55:32.759326Z",
-      "cycles_run": 1
+      "last_cycle_at": "2026-06-20T16:05:05.229940Z",
+      "cycles_run": 2
     },
     {
       "slug": "carlin",
@@ -52,5 +52,5 @@
       "cycles_run": 1
     }
   ],
-  "last_updated": "2026-06-20T12:18:27.126753Z"
+  "last_updated": "2026-06-20T16:05:05.229958Z"
 }
