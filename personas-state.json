@@ -3,8 +3,8 @@
   "personas": [
     {
       "slug": "aurelius",
-      "last_cycle_at": "2026-06-20T08:02:45.011307Z",
-      "cycles_run": 2
+      "last_cycle_at": "2026-06-22T11:17:50.267628Z",
+      "cycles_run": 3
     },
     {
       "slug": "auteur",
@@ -52,5 +52,5 @@
       "cycles_run": 2
     }
   ],
-  "last_updated": "2026-06-21T21:48:01.294135Z"
+  "last_updated": "2026-06-22T11:17:50.267647Z"
 }
