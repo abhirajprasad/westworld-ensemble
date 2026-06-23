@@ -33,8 +33,8 @@
     },
     {
       "slug": "populist",
-      "last_cycle_at": "2026-06-21T09:03:51.667012Z",
-      "cycles_run": 2
+      "last_cycle_at": "2026-06-23T22:03:03.300442Z",
+      "cycles_run": 3
     },
     {
       "slug": "sontag",
@@ -52,5 +52,5 @@
       "cycles_run": 2
     }
   ],
-  "last_updated": "2026-06-23T14:03:07.145358Z"
+  "last_updated": "2026-06-23T22:03:03.300460Z"
 }
