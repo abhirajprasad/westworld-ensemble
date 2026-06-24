@@ -43,8 +43,8 @@
     },
     {
       "slug": "thompson",
-      "last_cycle_at": "2026-06-21T20:19:46.104188Z",
-      "cycles_run": 2
+      "last_cycle_at": "2026-06-24T13:31:24.481002Z",
+      "cycles_run": 3
     },
     {
       "slug": "warhol",
@@ -52,5 +52,5 @@
       "cycles_run": 2
     }
   ],
-  "last_updated": "2026-06-23T23:18:23.894431Z"
+  "last_updated": "2026-06-24T13:31:24.481017Z"
 }
