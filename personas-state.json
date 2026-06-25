@@ -28,8 +28,8 @@
     },
     {
       "slug": "hitchens",
-      "last_cycle_at": "2026-06-23T14:03:07.145343Z",
-      "cycles_run": 4
+      "last_cycle_at": "2026-06-25T21:51:33.290312Z",
+      "cycles_run": 5
     },
     {
       "slug": "populist",
@@ -52,5 +52,5 @@
       "cycles_run": 3
     }
   ],
-  "last_updated": "2026-06-25T20:04:19.223069Z"
+  "last_updated": "2026-06-25T21:51:33.290326Z"
 }
