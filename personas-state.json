@@ -38,8 +38,8 @@
     },
     {
       "slug": "sontag",
-      "last_cycle_at": "2026-06-26T19:17:38.888586Z",
-      "cycles_run": 4
+      "last_cycle_at": "2026-06-30T11:46:51.047807Z",
+      "cycles_run": 5
     },
     {
       "slug": "thompson",
@@ -52,5 +52,5 @@
       "cycles_run": 4
     }
   ],
-  "last_updated": "2026-06-30T01:33:00.849500Z"
+  "last_updated": "2026-06-30T11:46:51.047822Z"
 }
