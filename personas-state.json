@@ -8,8 +8,8 @@
     },
     {
       "slug": "auteur",
-      "last_cycle_at": "2026-06-27T18:48:10.955328Z",
-      "cycles_run": 5
+      "last_cycle_at": "2026-07-01T19:01:21.842975Z",
+      "cycles_run": 6
     },
     {
       "slug": "bourdain",
@@ -52,5 +52,5 @@
       "cycles_run": 5
     }
   ],
-  "last_updated": "2026-07-01T14:31:40.024379Z"
+  "last_updated": "2026-07-01T19:01:21.842989Z"
 }
