@@ -23,8 +23,8 @@
     },
     {
       "slug": "gibson",
-      "last_cycle_at": "2026-06-28T22:17:01.824482Z",
-      "cycles_run": 5
+      "last_cycle_at": "2026-07-02T15:31:42.598971Z",
+      "cycles_run": 6
     },
     {
       "slug": "hitchens",
@@ -52,5 +52,5 @@
       "cycles_run": 5
     }
   ],
-  "last_updated": "2026-07-02T11:17:24.002031Z"
+  "last_updated": "2026-07-02T15:31:42.598990Z"
 }
